@@ -222,7 +222,6 @@ public class SimpleChess {
 
     public Pos promptInput() {
         Pos p = new Pos();
-        Scanner input = new Scanner(System.in);
         do {
             p.x = input.nextInt();
             p.y = input.nextInt();
