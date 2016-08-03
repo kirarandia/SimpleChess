@@ -141,7 +141,6 @@ public class SimpleChess {
         //checks if cell is empty
         if (isSpotEmpty(x, y)) {
             System.out.println("You are not moving a chess piece." + chessBoard[x][y] + " is empty. Try Again.");
-            promptMove();//restarts the move
             return false;
         }
         return true;
@@ -151,7 +150,6 @@ public class SimpleChess {
         //checks if cell has a chess figure string
         if (!isSpotEmpty(x, y)) {
             System.out.println("There is a piece at " + chessBoard[x][y] + ". Try again.");
-            promptMove();//restarts the process of the move
             return false;
         }
         return true;
@@ -168,7 +166,6 @@ public class SimpleChess {
     public boolean requireSameColor(int x, int y) {
         if (!isMatchingColor(x, y)) {
             System.out.println("You are playing" + playerColor + ". You may only move pieces of that color.");
-            promptMove();//restarts the process of the move
             return false;
         }
         return true;
@@ -232,28 +229,39 @@ public class SimpleChess {
         return p;
     }
 
-    public boolean promptMove() {
-        Pos from = promptInput("Enter current location (row, column) of the piece you want to move: ");
-        Pos to = promptInput("Enter destination (row, column): ");
-
-        //checks if coordinates are empty
-        requireOccupied(from.x, from.y);
-        requireEmpty(to.x, to.y);
-        //checks if the piece moved belongs to the player
-        requireSameColor(from.x, from.y);
-        //checks if the figure moved can move legally 
-        isValidMove(from, to);
-        //completes the move
-        switchPlaces(from, to);
+    boolean isValidMovePos(Pos from, Pos to) {
+        return  
+                //checks if coordinates are empty
+                requireOccupied(from.x, from.y) &&
+                requireEmpty(to.x, to.y) && 
+                //checks if the piece moved belongs to the player
+                requireSameColor(from.x, from.y) &&
+                //checks if the figure moved can move legally 
+                isValidMove(from, to);
+    }
+    
+    public boolean promptMove(Pos from, Pos to) {
+        do {
+            from = promptInput("Enter current location (row, column) of the piece you want to move: ");
+            to = promptInput("Enter destination (row, column): ");
+        } while (!isValidMovePos(from, to));
         return true;
     }
 
+    public void play() {
+        Pos from = new Pos();
+        Pos to = new Pos();
+        printChessBoard();
+        while(promptMove(from, to)) {
+            switchPlaces(from, to);
+            switchPlayer();
+        }
+    }
+    
     public static void main(String[] args) {
         SimpleChess chess = new SimpleChess();
 
         playerColor = chess.choosePlayer();//never gets called again
-        printChessBoard();
-        chess.promptMove();
+        chess.play();
     }
-
 }
