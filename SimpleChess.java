@@ -124,10 +124,10 @@ public class SimpleChess {
     public void switchPlaces(Pos from, Pos to) {
         //copies strings from emptyChessBoard to chessBoard
         String temp = chessBoard[from.x][from.y];
-        chessBoard[from.x][from.y] = chessBoard[to.x][to.y];
+        chessBoard[from.x][from.y] = emptyChessBoard[from.x][from.y];
         chessBoard[to.x][to.y] = temp;
 
-        System.out.println("You switched " + chessBoard[to.x][to.y] + " with " + chessBoard[from.x][from.y] + "\n");
+        System.out.println("You moved " + temp + " from " + from + " to " + to);
         printChessBoard();
 
     }
@@ -165,7 +165,7 @@ public class SimpleChess {
 
     public boolean requireSameColor(int x, int y) {
         if (!isMatchingColor(x, y)) {
-            System.out.println("You are playing" + playerColor + ". You may only move pieces of that color.");
+            System.out.println("You are playing " + playerColor + ". You may only move pieces of that color.");
             return false;
         }
         return true;
@@ -215,18 +215,17 @@ public class SimpleChess {
     class Pos {
         public int x;
         public int y;
+        public String toString() {
+            return "(" + Integer.toString(x) + ", " + Integer.toString(y) + ")";
+        }
     }
 
-    public Pos promptInput(String prompt) {
-        Pos p = new Pos();
+    public void promptInput(Pos pos, String prompt) {
         System.out.println(prompt);
         do {
-            p.x = input.nextInt();
-            p.y = input.nextInt();
-
-        } while (!checkInputFor(p.x, p.y));
-
-        return p;
+            pos.x = input.nextInt();
+            pos.y = input.nextInt();
+        } while (!checkInputFor(pos.x, pos.y));
     }
 
     boolean isValidMovePos(Pos from, Pos to) {
@@ -242,8 +241,8 @@ public class SimpleChess {
     
     public boolean promptMove(Pos from, Pos to) {
         do {
-            from = promptInput("Enter current location (row, column) of the piece you want to move: ");
-            to = promptInput("Enter destination (row, column): ");
+            promptInput(from, "Enter current location (row, column) of the piece you want to move: ");
+            promptInput(to, "Enter destination (row, column): ");
         } while (!isValidMovePos(from, to));
         return true;
     }
