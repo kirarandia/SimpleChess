@@ -220,8 +220,9 @@ public class SimpleChess {
         public int y;
     }
 
-    public Pos promptInput() {
+    public Pos promptInput(String prompt) {
         Pos p = new Pos();
+        System.out.println(prompt);
         do {
             p.x = input.nextInt();
             p.y = input.nextInt();
@@ -232,10 +233,8 @@ public class SimpleChess {
     }
 
     public boolean promptMove() {
-        System.out.println("Enter current location (row, column) of the piece you want to move: ");
-        Pos from = promptInput();
-        System.out.println("Enter destination (row, column): ");
-        Pos to = promptInput();
+        Pos from = promptInput("Enter current location (row, column) of the piece you want to move: ");
+        Pos to = promptInput("Enter destination (row, column): ");
 
         //checks if coordinates are empty
         requireOccupied(from.x, from.y);
