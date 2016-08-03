@@ -183,25 +183,25 @@ public class SimpleChess {
         return false;
     }
 
-    public void switchPlayer(String player) {
+    public void switchPlayer() {
         //switches color the player uses after each move
-        if (player == "b") {
-            player = "b";
+        if (playerColor.equals("b")) {
+            playerColor = "w";
         } else {
-            player = "w";
+            playerColor = "b";
         }
     }
 
-    public String choosePlayer(String colorPlayer) {
+    public String choosePlayer() {
         System.out.println("Choose color to start the game, w-white or b-black): ");
-        colorPlayer = input.next();
-        while (!("w".equals(colorPlayer)) && !("b".equals(colorPlayer))) {
+        String color = input.next();
+        while (!("w".equals(color)) && !("b".equals(color))) {
             System.out.println("Enter the correct color to begin the game (black or white): ");
-            colorPlayer = input.next();
+            color = input.next();
         }
-        System.out.println("You are playing " + colorPlayer + ".");///prints chosen color 
+        System.out.println("You are playing " + color + ".");///prints chosen color 
 
-        return colorPlayer;
+        return color;
     }
 
     //check valid coordinate values x,y
@@ -255,7 +255,7 @@ public class SimpleChess {
     public static void main(String[] args) {
         SimpleChess chess = new SimpleChess();
 
-        chess.choosePlayer(playerColor);//never gets called again
+        playerColor = chess.choosePlayer();//never gets called again
         printChessBoard();
         chess.promptMove();
     }
