@@ -207,7 +207,7 @@ public class SimpleChess {
     //check valid coordinate values x,y
     public static boolean checkInputFor(int x, int y) {
 
-        if ((x >= 9) || (x <= 0) || (y >= 9) || (y <= 0)) {
+        if ((x > 8) || (x < 1) || (y > 8) || (y < 1)) {
             System.out.println("Valid input is 1 through 8: Try again (x, y): ");
             return false;
         } else {
