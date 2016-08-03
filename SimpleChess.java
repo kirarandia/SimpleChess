@@ -215,11 +215,9 @@ public class SimpleChess {
         }
     }
 
-    public class Pos {
-
+    class Pos {
         public int x;
         public int y;
-
     }
 
     public Pos promptInput() {
