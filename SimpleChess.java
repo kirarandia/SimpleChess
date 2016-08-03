@@ -165,16 +165,22 @@ public class SimpleChess {
         return false;
     }
 
-    public boolean isRightColor(int fromX, int fromY) {
-        //checks if the player is trying to move the right color
-        if (chessBoard[fromX][fromY].contains("b") && playerColor.contains("b")) {
-            return true;
-        } else {
+    public boolean requireSameColor(int x, int y) {
+        if (!isMatchingColor(x, y)) {
             System.out.println("You are playing" + playerColor + ". You may only move pieces of that color.");
             promptMove();//restarts the process of the move
-
             return false;
         }
+        return true;
+    }
+
+    public boolean isMatchingColor(int fromX, int fromY) {
+        //checks if the player is trying to move the right color
+        if ((chessBoard[fromX][fromY].contains("b") && playerColor.contains("b")) ||
+            (chessBoard[fromX][fromY].contains("w") && playerColor.contains("w"))) {
+            return true;
+        }
+        return false;
     }
 
     public void switchPlayer(String player) {
@@ -238,7 +244,7 @@ public class SimpleChess {
         requireOccupied(from.x, from.y);
         requireEmpty(to.x, to.y);
         //checks if the piece moved belongs to the player
-        isRightColor(from.x, from.y);
+        requireSameColor(from.x, from.y);
         //checks if the figure moved can move legally 
         isValidMove(from, to);
         //completes the move
