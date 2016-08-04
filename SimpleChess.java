@@ -277,40 +277,36 @@ public class SimpleChess {
         return true;
     }
 
-    char getFigureCode(Pos pos) {
+    String getFigureCode(Pos pos) {
         //gets the first character of the String of the coordinats passed from class Pos
-        return getCell(pos.x,pos.y).charAt(0);
+        return getCell(pos.x,pos.y).substring(0, 1);
     }
 
     boolean isValidMove(Pos from, Pos to) {
         //matches the getFigureCode with the chessFigure
         boolean result = false;
         switch (getFigureCode(from)) {
-            case 'R':
+            case ROOK:
                 result = isRookMove(from, to);
                 break;
-            case 'K':
+            case KING:
                 result = isKingMove(from, to);
                 break;
-            case 'Q':
+            case QUEEN:
                 result = isQueenMove(from, to);
                 break;
-            case 'k':
+            case KNIGHT:
                 result = isKnightMove(from, to);
                 break;
-            case 'B':
+            case BISHOP:
                 result = isBishopMove(from, to);
                 break;
-            case 'p':
+            case PAWN:
                 result = isPawnMove(from, to);
-                break;
-            case ' ':
-                // error : empty
-                System.out.println(from + " is not a chess piece.");
                 break;
             default:
                 // error : total garbage
-                System.out.println("The entry is valid.");
+                System.out.println("The entry is not valid.");
                 break;
         }
         if (!result) {
@@ -425,6 +421,7 @@ public class SimpleChess {
 
             switchPlaces(from, to);
             switchPlayer();//prompts another player to move
+            System.out.println("Player: " + playerColor);
         }
     }
 
@@ -468,7 +465,7 @@ public class SimpleChess {
         @Override
         public String toString() {
             //returns a string that prints x/y indecies 
-            return "(" + Integer.toString(x) + ", " + Integer.toString(y) + ")";
+            return "(" + Integer.toString(x+1) + ", " + Integer.toString(y+1) + ")";
         }
     }
 
