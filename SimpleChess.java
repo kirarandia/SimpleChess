@@ -56,15 +56,21 @@ package simplechess;
  *
  * @author Kira
  */
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SimpleChess {
 
-//    BufferedInputStream in = new BufferedInputStream(System.in);
     Scanner input = new Scanner(System.in);
 
     static String playerColor;
 
+    
     public static final String KING = "K";
     public static final String QUEEN = "Q";
     public static final String ROOK = "R";
@@ -140,18 +146,6 @@ public class SimpleChess {
             System.out.print(" " + (x+1) + " ");
         }
         System.out.println();
-    }
-
-    class MoveException extends Exception {
-
-        MoveException(String why) {
-            msg = why;
-        }
-        final String msg;
-
-        public String toString() {
-            return msg;
-        }
     }
 
     boolean possiblePath(Pos from, Pos to) {
@@ -393,10 +387,11 @@ public class SimpleChess {
     boolean promptMove(Pos from, Pos to) {
         //prompts user for input until the move of the chessFigure is valid
         do {
-            promptInput(from, "Enter current location (row, column) of the piece you want to move: ");
-            promptInput(to, "Enter destination (row, column): ");
+            promptInput(from, "Enter current location (x 1-8, y 1-8) of the piece you want to move: ");
+            promptInput(to, "Enter destination (x 1-8, y 1-8): ");
             //checks if the input positions are possible
         } while (!isValidMovePos(from, to));
+        System.out.println("Do you want to continue? Yes=1, No=0: ");
         return true;
     }
 
@@ -421,8 +416,15 @@ public class SimpleChess {
 
             switchPlaces(from, to);
             switchPlayer();//prompts another player to move
-            System.out.println("Player: " + playerColor);
+            System.out.println("Player: " + playerColor +" turn.\n");
+            System.out.println("Do you want to continue Yes-1, No-0: ");
+            int yn = input.nextInt();
+            if (yn == 0){
+                break;
+            }
+            
         }
+        
     }
 
     public void switchPlayer() {
@@ -477,7 +479,7 @@ public class SimpleChess {
             System.out.println("Enter the correct color to begin the game (black or white): ");
             color = input.next();
         }
-        System.out.println("You are playing " + color + ".");///prints chosen color 
+        System.out.println("\nYou are playing " + color + ".");///prints chosen color 
 
         return color;
     }
