@@ -56,108 +56,281 @@ package simplechess;
  *
  * @author Kira
  */
-import java.io.*;
 import java.util.Scanner;
 
 public class SimpleChess {
 
 //    BufferedInputStream in = new BufferedInputStream(System.in);
     Scanner input = new Scanner(System.in);
-    private final static boolean YES = true;//chess piece is called
-    private final static boolean NO = false;//the cell is empty
 
     static String playerColor;
 
-    String king;
-    String queen;
-    String rook;
-    String bishop;
-    String knight;
-    String pawn;
+    public static final String KING = "K";
+    public static final String QUEEN = "Q";
+    public static final String ROOK = "R";
+    public static final String BISHOP = "B";
+    public static final String KNIGHT = "N";
+    public static final String PAWN = "P";
 
-    //empty chess pieces
-    static String[][] emptyChessBoard = new String[][]{
-        {" ", "-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8|"},
-        {"1|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w"},
-        {"2|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"},
-        {"3|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w",},
-        {"4|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"},
-        {"5|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w",},
-        {"6|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"},
-        {"7|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w",},
-        {"8|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"}
-    };
+    public static final String WHITE = "w";
+    public static final String BLACK = "b";
+
+    public static final String[] FIGURES = new String[]{ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK};
+    public static final int BOARD_SIZE = 8;
 
     //8x8 chess board array, filled with initial chess pieces
-    static String[][] chessBoard = new String[][]{
-        {" ", "-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8|"},
-        {"1|", "Rb", "kb", "Bb", "Qb", "Kb", "Bb", "kb", "Rb"},
-        {"2|", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb"},
-        {"3|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w"},
-        {"4|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"},
-        {"5|", "b ", "w ", "b ", "w ", "b ", "w ", "b ", "w"},
-        {"6|", "w ", "b ", "w ", "b ", "w ", "b ", "w ", "b"},
-        {"7|", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw"},
-        {"8|", "Rw", "kw", "Bw", "Qw", "Kw", "Bw", "kw", "Rw"}
-    };
+    static String[][] chessBoard = new String[BOARD_SIZE][BOARD_SIZE];
 
-    public SimpleChess() {
-        //deault constructor 
+    String getCell(int x, int y) {
+        return chessBoard[y][x];
+    }
+    
+    void setCell(int x, int y, String val) {
+        chessBoard[y][x] = val;
+    }
+    
+    String emptyCell(int x, int y) {
+        String f;
+        if ((x + y) % 2 == 0) {
+            f = BLACK + BLACK;
+        } else {
+            f = WHITE + WHITE;
+        }
+        return f;
+    }
+    
+    
+    void fillChessBoard() {
+        String f;
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            for (int x = 0; x < BOARD_SIZE; x++) {
+                switch (y) {
+                case 0:
+                    f = FIGURES[x] + WHITE;
+                    break;
+                case 1:
+                    f = PAWN + WHITE;
+                    break;
+                case 6:
+                    f = PAWN + BLACK;
+                    break;
+                case 7:
+                    f = FIGURES[x] + BLACK;
+                    break;
+                default:
+                    f = emptyCell(x,y);
+                    break;
+                }
+                setCell(x,y,f);
+            }
+        }
     }
 
-    //prints out updated chessBoard
-    public static void printChessBoard() {
-        //SimpleChess c= new SimpleChess();
-        for (int i = 0; i < chessBoard.length; i++) {
-            for (int j = 0; j < chessBoard[i].length; j++) {
-                System.out.print(chessBoard[i][j] + " ");
+    public void printChessBoard() {
+        //prints out updated chessBoard string
+        for (int y = BOARD_SIZE - 1; y >= 0; y--) {
+            System.out.print((y+1) + "  ");
+            for (int x = 0; x < BOARD_SIZE; x++) {
+                System.out.print(getCell(x, y) + " ");
             }
             System.out.println();
         }
+        System.out.print("   ");
+        for (int x = 0; x < BOARD_SIZE; x++) {
+            System.out.print(" " + (x+1) + " ");
+        }
+        System.out.println();
     }
 
-    public boolean isValidMove(Pos x, Pos y/*,Color c*/) {
-        //checks if move can be made by the chosen chess figure
+    class MoveException extends Exception {
+
+        MoveException(String why) {
+            msg = why;
+        }
+        final String msg;
+
+        public String toString() {
+            return msg;
+        }
+    }
+
+    boolean possiblePath(Pos from, Pos to) {
+        //checks if Figure has the ability to move: diagonally, horizontally or vertically 
+        int dX = Math.abs(from.x - to.x);
+        int dY = Math.abs(from.y - to.y);
+
+        return (dX == dY) || (dX == 0) || (dY == 0);
+    }
+
+    boolean isBlockedPath(Pos from, Pos to) {
+        //chekcs if the move has obsticles on its path
+        Pos current = new Pos(from);
+        Pos step = new Pos();
+
+        if (!possiblePath(from, to)) {
+            //path is impossible
+            return false;
+        }
+        //path is possible, determine the direction 
+        int dx = to.x - from.x;
+        int dy = to.y - from.y;
+
+        //increments by 1 horizontally
+        if (dx > 0) {
+            step.x = 1;
+        }
+        //decrements by 1 horizontally
+        if (dx < 0) {
+            step.x = -1;
+        }
+        //increments by 1 vertically
+        if (dy > 0) {
+            step.y = 1;
+        }
+        //decrements by 1 vertically 
+        if (dy < 0) {
+            step.y = -1;
+        }
+        //doesn't move horizontally
+        if (dx == 0) {
+            step.x = 0;
+        }
+        //doesn't move vertically
+        if (dy == 0) {
+            step.y = 0;
+        }
+        /*moves piece one step foward to it's destination(to) until isSpotEmpty is false
+         and until current(x,y) reached destination(to)*/
+        while (!current.equals(to)) {
+            current.add(step);
+            if (!isSpotEmpty(current.x, current.y)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
-    public void switchPlaces(Pos from, Pos to) {
-        //copies strings from emptyChessBoard to chessBoard
-        String temp = chessBoard[from.x][from.y];
-        chessBoard[from.x][from.y] = emptyChessBoard[from.x][from.y];
-        chessBoard[to.x][to.y] = temp;
+    boolean isRookMove(Pos from, Pos to) {
+        //
+        int dX = Math.abs(from.x - to.x);
+        int dY = Math.abs(from.y - to.y);
 
-        System.out.println("You moved " + temp + " from " + from + " to " + to);
-        printChessBoard();
-
+        if (!(dX == 0) || !(dY == 0)) {
+            return false;
+        }
+        return isBlockedPath(from, to);
     }
 
-    public boolean isSpotOccupied(int x, int y) {
-        //inverts isSpotEmpty() method
-        return !isSpotEmpty(x, y);
+    boolean isPawnMove(Pos from, Pos to) {
+        //
+        int dX = to.x - from.x;
+        int dY = to.y - from.y;
+        int dir = 1;
+
+        if (playerColor.contains(WHITE)) {
+            dir = 1;
+        } else if (playerColor.contains(BLACK)) {
+            dir = -1;
+        }
+        //check isBlockedPath if Figure is moving forward by 1 cell
+        if (dX != 0 || dY != dir) {
+            return false;
+        }
+        return isBlockedPath(from, to);
     }
 
-    public boolean requireOccupied(int x, int y) {
-        //checks if cell is empty
-        if (isSpotEmpty(x, y)) {
-            System.out.println("You are not moving a chess piece." + chessBoard[x][y] + " is empty. Try Again.");
+    boolean isKingMove(Pos from, Pos to) {
+        //
+        int dX = Math.abs(from.x - to.x);
+        int dY = Math.abs(from.y - to.y);
+        //check isBlockedPath if Figure is moving by 1 cell in every direction 
+        if (!(dX == 1) && !(dY == 1)) {
+            return false;
+        }
+        return isBlockedPath(from, to);
+    }
+
+    boolean isBishopMove(Pos from, Pos to) {
+        int dX = Math.abs(from.x - to.x);
+        int dY = Math.abs(from.y - to.y);
+        //rule bishops may ONLY move diagonally, pass to isBlockedPath if true
+        if (!(dX == dY)) {
+            return false;
+        }
+        return isBlockedPath(from, to);
+    }
+
+    boolean isQueenMove(Pos from, Pos to) {
+        //can move in any path
+        return isBlockedPath(from, to);
+    }
+
+    boolean isKnightMove(Pos from, Pos to) {
+        int dX = Math.abs(from.x - to.x);
+        int dY = Math.abs(from.y - to.y);
+
+        //if the min value of either x or y is 2, then the maximum value of y,x is 3
+        if (!(Math.min(dX, dY) == 1 && Math.max(dX, dY) == 2)) {
             return false;
         }
         return true;
     }
 
-    public boolean requireEmpty(int x, int y) {
-        //checks if cell has a chess figure string
-        if (!isSpotEmpty(x, y)) {
-            System.out.println("There is a piece at " + chessBoard[x][y] + ". Try again.");
-            return false;
+    char getFigureCode(Pos pos) {
+        //gets the first character of the String of the coordinats passed from class Pos
+        return getCell(pos.x,pos.y).charAt(0);
+    }
+
+    boolean isValidMove(Pos from, Pos to) {
+        //matches the getFigureCode with the chessFigure
+        boolean result = false;
+        switch (getFigureCode(from)) {
+            case 'R':
+                result = isRookMove(from, to);
+                break;
+            case 'K':
+                result = isKingMove(from, to);
+                break;
+            case 'Q':
+                result = isQueenMove(from, to);
+                break;
+            case 'k':
+                result = isKnightMove(from, to);
+                break;
+            case 'B':
+                result = isBishopMove(from, to);
+                break;
+            case 'p':
+                result = isPawnMove(from, to);
+                break;
+            case ' ':
+                // error : empty
+                System.out.println(from + " is not a chess piece.");
+                break;
+            default:
+                // error : total garbage
+                System.out.println("The entry is valid.");
+                break;
         }
-        return true;
+        if (!result) {
+            System.out.println("Failed on rule for " + getFigureCode(from) + "; " + from + to + " passed through.");
+        }
+        return result;
     }
 
     public boolean isSpotEmpty(int x, int y) {
-        //check if location has a cell color "b" or "w"
-        if ("b ".equals(chessBoard[x][y]) || "w ".equals(chessBoard[x][y])) {
+        //check if location has a cell color Black or WHITE
+        if ((BLACK+BLACK).equals(getCell(x,y)) || (WHITE+WHITE).equals(getCell(x,y))) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isMatchingColor(int fromX, int fromY) {
+        //checks if the player is trying to move the right color
+        if ((getCell(fromX,fromY).contains(BLACK) && playerColor.contains(BLACK))
+                || (getCell(fromX,fromY).contains(WHITE) && playerColor.contains(WHITE))) {
             return true;
         }
         return false;
@@ -171,39 +344,36 @@ public class SimpleChess {
         return true;
     }
 
-    public boolean isMatchingColor(int fromX, int fromY) {
-        //checks if the player is trying to move the right color
-        if ((chessBoard[fromX][fromY].contains("b") && playerColor.contains("b")) ||
-            (chessBoard[fromX][fromY].contains("w") && playerColor.contains("w"))) {
-            return true;
+    public boolean requireOccupied(int x, int y) {
+        //checks if cell is empty
+        if (isSpotEmpty(x, y)) {
+            System.out.println("You are not moving a chess piece. Cell is empty. Try Again.");
+            return false;
         }
-        return false;
+        return true;
     }
 
-    public void switchPlayer() {
-        //switches color the player uses after each move
-        if (playerColor.equals("b")) {
-            playerColor = "w";
-        } else {
-            playerColor = "b";
+    public boolean requireEmpty(int x, int y) {
+        //checks if cell has a chess figure string
+        if (!isSpotEmpty(x, y)) {
+            System.out.println("There is a piece at " + getCell(x,y) + ". Try again.");
+            return false;
         }
+        return true;
     }
 
-    public String choosePlayer() {
-        System.out.println("Choose color to start the game, w-white or b-black): ");
-        String color = input.next();
-        while (!("w".equals(color)) && !("b".equals(color))) {
-            System.out.println("Enter the correct color to begin the game (black or white): ");
-            color = input.next();
-        }
-        System.out.println("You are playing " + color + ".");///prints chosen color 
-
-        return color;
+    boolean isValidMovePos(Pos from, Pos to) {
+        return //checks if coordinates are empty
+                (requireOccupied(from.x, from.y)
+                && requireEmpty(to.x, to.y)
+                && //checks if the piece moved belongs to the player
+                requireSameColor(from.x, from.y)
+                && //checks if the figure moved can move legally 
+                isValidMove(from, to));
     }
 
-    //check valid coordinate values x,y
     public static boolean checkInputFor(int x, int y) {
-
+        //check valid coordinate values x,y
         if ((x > 8) || (x < 1) || (y > 8) || (y < 1)) {
             System.out.println("Valid input is 1 through 8: Try again (x, y): ");
             return false;
@@ -212,55 +382,113 @@ public class SimpleChess {
         }
     }
 
-    class Pos {
-        public int x;
-        public int y;
-        public String toString() {
-            return "(" + Integer.toString(x) + ", " + Integer.toString(y) + ")";
-        }
-    }
-
-    public void promptInput(Pos pos, String prompt) {
+    void promptInput(Pos pos, String prompt) {
+        //promts input passing the Pos(x,y) and String question
         System.out.println(prompt);
         do {
             pos.x = input.nextInt();
             pos.y = input.nextInt();
+            //checking input is 1-8
         } while (!checkInputFor(pos.x, pos.y));
+        pos.x --;
+        pos.y --;
     }
 
-    boolean isValidMovePos(Pos from, Pos to) {
-        return  
-                //checks if coordinates are empty
-                requireOccupied(from.x, from.y) &&
-                requireEmpty(to.x, to.y) && 
-                //checks if the piece moved belongs to the player
-                requireSameColor(from.x, from.y) &&
-                //checks if the figure moved can move legally 
-                isValidMove(from, to);
-    }
-    
-    public boolean promptMove(Pos from, Pos to) {
+    boolean promptMove(Pos from, Pos to) {
+        //prompts user for input until the move of the chessFigure is valid
         do {
             promptInput(from, "Enter current location (row, column) of the piece you want to move: ");
             promptInput(to, "Enter destination (row, column): ");
+            //checks if the input positions are possible
         } while (!isValidMovePos(from, to));
         return true;
     }
 
+    void switchPlaces(Pos from, Pos to) {
+        //copies strings from emptyChessBoard to chessBoard
+        String temp = getCell(from.x, from.y);
+        setCell(from.x, from.y, emptyCell(from.x, from.y));
+        setCell(to.x, to.y, temp);
+
+        System.out.println("You moved " + temp + " from " + from + " to " + to);
+        printChessBoard();
+
+    }
+
     public void play() {
+        //upper level method that initiates the game
         Pos from = new Pos();
         Pos to = new Pos();
         printChessBoard();
-        while(promptMove(from, to)) {
+        //after promptMove completes a valid move, playerColor field switches color
+        while (promptMove(from, to)) {
+
             switchPlaces(from, to);
-            switchPlayer();
+            switchPlayer();//prompts another player to move
         }
     }
-    
+
+    public void switchPlayer() {
+        //switches color the player used during a move
+        if (playerColor.equals(BLACK)) {
+            playerColor = WHITE;
+        } else {
+            playerColor = BLACK;
+        }
+    }
+
+    class Pos {
+
+        //creates x/y variables used to instantiate input 
+        public int x;
+        public int y;
+
+        Pos() {
+            //default constructor
+            x = 0;
+            y = 0;
+        }
+
+        Pos(Pos other) {
+            x = other.x;
+            y = other.y;
+        }
+
+        void add(Pos p) {
+            //add method
+            x += p.x;
+            y += p.y;
+        }
+
+        boolean equals(Pos pos) {
+            //
+            return x == pos.x && y == pos.y;
+        }
+
+        @Override
+        public String toString() {
+            //returns a string that prints x/y indecies 
+            return "(" + Integer.toString(x) + ", " + Integer.toString(y) + ")";
+        }
+    }
+
+    public String choosePlayer() {
+        fillChessBoard();
+        System.out.println("Choose color to start the game, w-white or b-black): ");
+        String color = input.next();
+        while (!(WHITE.equals(color)) && !(BLACK.equals(color))) {
+            System.out.println("Enter the correct color to begin the game (black or white): ");
+            color = input.next();
+        }
+        System.out.println("You are playing " + color + ".");///prints chosen color 
+
+        return color;
+    }
+
     public static void main(String[] args) {
         SimpleChess chess = new SimpleChess();
 
-        playerColor = chess.choosePlayer();//never gets called again
+        playerColor = chess.choosePlayer();
         chess.play();
     }
 }
